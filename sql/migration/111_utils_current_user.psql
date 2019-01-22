@@ -1,0 +1,13 @@
+/*
+
+  Handy methods for RLS
+
+*/
+create or replace function app_public.current_user_id() returns bigint as $$
+  select nullif(current_setting('jwt.claims.user_id', true), '')::bigint;
+$$ language sql stable set search_path from current;
+
+create or replace function app_public."current_role"() returns text as $$
+  select nullif(current_setting('role', true), '');
+$$ language sql stable set search_path from current;
+

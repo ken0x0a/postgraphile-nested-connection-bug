@@ -1,0 +1,21 @@
+-- First, we clean out the old stuff
+
+drop schema if exists app_public cascade;
+drop schema if exists app_private cascade;
+drop schema if exists app_jobs cascade;
+
+--------------------------------------------------------------------------------
+
+\ir migration/100_schema.psql
+
+\ir migration/111_utils_current_user.psql
+
+-- 
+-- primary key functions & etc...
+-- 
+\ir migration/203_table_user.psql
+\ir migration/208_1_user_private.psql
+
+
+--------------------------------------------------------------------------------
+

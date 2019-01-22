@@ -1,0 +1,33 @@
+
+CREATE TABLE "user_private" (
+  "id" bigint NOT NULL PRIMARY KEY REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE DEFAULT current_user_id(),
+  -- "email" text UNIQUE NOT NULL,
+  "update" boolean DEFAULT false NOT NULL,
+  "settings" jsonb DEFAULT '{}'::jsonb,
+  "notification_email" jsonb DEFAULT '{}'::jsonb
+)
+with (fillfactor=85);
+
+/*
+  === Smart Comment ===
+*/
+
+comment on constraint user_private_id_fkey on user_private is
+  E'@foreignFieldName private\n@fieldName user'; -- User { private }
+
+
+/*
+  === Row Level Security ===
+*/
+alter table app_public.user_private enable row level security;
+-- alter table app_public.user_private force row level security;
+
+create policy select_self on app_public.user_private for select using (id = app_public.current_user_id());
+create policy update_self on app_public.user_private for update using (id = app_public.current_user_id());
+create policy insert_self on app_public.user_private for insert with check (id = app_public.current_user_id());
+create policy delete_self on app_public.user_private for delete using (id = app_public.current_user_id());
+grant select on app_public.user_private to graph_user;
+grant insert on app_public.user_private to graph_user;
+grant update on app_public.user_private to graph_user;
+-- NO!! grant delete on app_public.user_private to graph_user;
+

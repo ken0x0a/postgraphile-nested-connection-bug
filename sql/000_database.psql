@@ -1,0 +1,61 @@
+/*
+
+./setup.sh
+-- https://www.postgresql.org/docs/current/sql-createrole.html
+
+*/
+\echo '\nThis file is not allowed to call directly\n'
+\quit
+-- read by <ProjectDir>/script/setup.sh from line 10
+-- copied from github repo postgraphile-example/setup.sh
+
+-- RESET database
+DROP DATABASE IF EXISTS service;
+DROP DATABASE IF EXISTS service_test;
+DROP ROLE IF EXISTS service_admin;
+DROP ROLE IF EXISTS graph_auth;
+DROP ROLE IF EXISTS graph_user;
+DROP ROLE IF EXISTS graph;
+
+-- Now to set up the database cleanly:
+
+-- Ref: https://devcenter.heroku.com/articles/lheroku-postgresql#connection-permissions
+
+-- This is the root role for the database
+CREATE ROLE service_admin WITH LOGIN PASSWORD '${SUPERUSER_PASSWORD}' SUPERUSER;
+
+-- This is the no-access role that PostGraphile will run as by default
+CREATE ROLE graph_auth WITH LOGIN PASSWORD '${AUTH_USER_PASSWORD}' NOINHERIT;
+
+-- This is the role that PostGraphile will switch to (from graph_auth) during a transaction
+CREATE ROLE graph_user;
+
+-- This enables PostGraphile to switch from graph_auth to graph_user
+GRANT graph_user TO graph_auth;
+
+-- Here's our main database
+CREATE DATABASE service OWNER service_admin;
+REVOKE ALL ON DATABASE service FROM PUBLIC;
+GRANT CONNECT ON DATABASE service TO service_admin;
+GRANT CONNECT ON DATABASE service TO graph_auth;
+GRANT ALL ON DATABASE service TO service_admin;
+
+-- Some extensions require superuser privileges, so we create them before migration time.
+\connect service
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- This is a copy of the setup above for our test database
+CREATE DATABASE service_test OWNER service_admin;
+REVOKE ALL ON DATABASE service_test FROM PUBLIC;
+GRANT CONNECT ON DATABASE service_test TO service_admin;
+GRANT CONNECT ON DATABASE service_test TO graph_auth;
+GRANT ALL ON DATABASE service_test TO service_admin;
+\connect service_test
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;

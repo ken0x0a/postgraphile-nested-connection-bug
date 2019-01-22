@@ -1,0 +1,20 @@
+.DS_Store
+/.jest
+
+/node_modules
+/yarn-error.log
+
+/coverage
+
+/private.key
+/private.key.*
+
+/build
+
+/.env
+# /.env.*
+!/.env.example
+
+!.gitkeep
+/__generated__/*
+/src/__generated__/*

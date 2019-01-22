@@ -1,0 +1,51 @@
+
+CREATE TABLE "user" (
+  "id" bigint PRIMARY KEY DEFAULT current_user_id(),
+  "username" text NOT NULL UNIQUE,
+  "name" text NOT NULL,
+  "avatar" text,
+  "description" text,
+  "favorite_count" integer DEFAULT 0 NOT NULL
+);
+
+
+/*
+  === Row Level Security ===
+*/
+alter table app_public."user" enable row level security;
+-- alter table app_public."user" force row level security;
+
+create policy select_self on app_public."user" for select using (true);
+create policy insert_self on app_public."user" for insert with check (id = app_public.current_user_id());
+create policy update_self on app_public."user" for update using (id = app_public.current_user_id());
+create policy delete_self on app_public."user" for delete using (id = app_public.current_user_id());
+-- drop policy select_self on app_public."user";
+-- drop policy update_self on app_public."user";
+-- drop policy insert_self on app_public."user";
+-- drop policy delete_self on app_public."user";
+grant select on app_public."user" to graph_user;
+grant insert on app_public."user" to graph_user;
+grant update on app_public."user" to graph_user;
+-- NO!! grant delete on app_public."user" to graph_user;
+
+/*
+  === Default Value
+*/
+
+CREATE OR REPLACE FUNCTION _tg__set_user_default_name_trigger() RETURNS trigger AS $$
+  BEGIN
+    NEW."name" = NEW.username;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER table_user_set_default_name
+    BEFORE INSERT ON "user"
+    FOR EACH ROW
+    WHEN (NEW.name is null)
+    EXECUTE PROCEDURE _tg__set_user_default_name_trigger();
+
+-- 
+-- DEV ONLY
+-- 
+-- grant select, insert, update, delete on all tables in schema app_public to graph_user;

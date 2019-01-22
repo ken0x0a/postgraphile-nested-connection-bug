@@ -1,0 +1,45 @@
+
+-- for application tables & functions
+CREATE SCHEMA app_public;
+
+-- for internal tables & functions
+CREATE SCHEMA app_private;
+
+-- for jobs & triggers
+CREATE SCHEMA app_jobs;
+
+-- for security
+-- https://www.postgresql.org/docs/current/ddl-schemas.html
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+
+grant usage on schema app_public to graph_user;
+-- grant all on schema app_public to graph_user;
+-- grant all on schema app_public to graph_auth;
+-- revoke all on schema app_public from graph_auth;
+-- revoke all on schema app_public from graph_user;
+
+-- This allows inserts without granting permission to the serial primary key column.
+alter default privileges in schema app_public grant usage, select on sequences to graph_user;
+-- alter default privileges in schema app_jobs grant execute on functions to graph_user;
+
+
+/*
+
+## none of follows help to execute functions in app_jobs
+
+grant execute on all functions in schema app_jobs to graph_user;
+grant execute on all functions in schema app_jobs to graph_auth;
+grant execute on all functions in schema app_jobs to graph_user;
+revoke execute on all functions in schema app_jobs from graph_user;
+revoke execute on all functions in schema app_jobs from graph_user;
+revoke execute on all functions in schema app_jobs from graph_auth;
+
+*/
+grant usage on schema app_jobs to graph_user;
+
+
+
+-- 
+set search_path to app_public;
+
